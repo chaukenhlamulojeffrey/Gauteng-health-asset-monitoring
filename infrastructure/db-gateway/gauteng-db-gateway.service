@@ -1,0 +1,31 @@
+[Unit]
+Description=Isolated Gauteng Health MySQL WebSocket gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=gauteng-db-gateway
+Group=gauteng-db-gateway
+Environment=GATEWAY_HOST=172.17.0.1
+Environment=GATEWAY_PORT=8790
+Environment=DB_TARGET_HOST=10.10.99.10
+Environment=DB_TARGET_PORT=3306
+Environment=GATEWAY_TOKEN_FILE=/etc/gauteng-db-gateway.token
+ExecStart=/usr/bin/node /opt/gauteng-db-gateway/server.cjs
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

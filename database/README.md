@@ -11,6 +11,15 @@ certificate and hostname. If the database certificate is rotated or its CA
 changes, update this public CA bundle or configure `DB_SSL_CA` with the
 replacement PEM chain. There is no insecure TLS bypass in production.
 
+The production app reaches MySQL through an isolated authenticated WebSocket
+TCP gateway on the Cloudflare Tunnel. Configure `DB_GATEWAY_URL` as
+`wss://db-gateway.allinonesolution.uk/mysql` and set `DB_GATEWAY_TOKEN` as a
+Vercel Secret for Production. The gateway forwards the MySQL protocol without
+terminating its TLS session, so the app continues to validate the database
+certificate against `DB_HOST`. Do not use the gateway token in client-side
+code or expose it with a `NEXT_PUBLIC_` name. Local development can continue
+connecting directly to MySQL without the gateway variables.
+
 Create the app table by running [`health_assets.sql`](./health_assets.sql) against
 the target database. The application database account needs `SELECT`, `INSERT`,
 `UPDATE`, and `DELETE` privileges on `health_assets`; `SELECT`, `INSERT`, and
