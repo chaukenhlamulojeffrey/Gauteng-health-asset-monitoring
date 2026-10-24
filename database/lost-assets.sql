@@ -1,0 +1,45 @@
+CREATE TABLE IF NOT EXISTS health_asset_loss_reports (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  asset_id CHAR(36) NOT NULL,
+  asset_tag_snapshot VARCHAR(191) NOT NULL,
+  asset_name_snapshot VARCHAR(255) NOT NULL,
+  previous_status VARCHAR(50) NOT NULL,
+  last_seen_date DATE NOT NULL,
+  last_known_location VARCHAR(500) NOT NULL,
+  circumstances TEXT NOT NULL,
+  reference_number VARCHAR(191) NULL,
+  status ENUM('Pending', 'Confirmed Lost', 'Recovered', 'Rejected')
+    NOT NULL DEFAULT 'Pending',
+  district_snapshot VARCHAR(100) NOT NULL,
+  sub_district_snapshot VARCHAR(255) NULL,
+  facility_name_snapshot VARCHAR(255) NOT NULL,
+  custodian_name_snapshot VARCHAR(255) NULL,
+  custodian_persal_number_snapshot VARCHAR(8) NULL,
+  requested_by CHAR(36) NOT NULL,
+  requester_name_snapshot VARCHAR(255) NOT NULL,
+  requester_persal_number_snapshot VARCHAR(8) NOT NULL,
+  requester_role_snapshot VARCHAR(32) NOT NULL,
+  requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  reviewed_by CHAR(36) NULL,
+  reviewer_name_snapshot VARCHAR(255) NULL,
+  reviewer_persal_number_snapshot VARCHAR(8) NULL,
+  reviewer_role_snapshot VARCHAR(32) NULL,
+  reviewed_at DATETIME NULL,
+  review_notes TEXT NULL,
+  recovered_by CHAR(36) NULL,
+  recoverer_name_snapshot VARCHAR(255) NULL,
+  recoverer_persal_number_snapshot VARCHAR(8) NULL,
+  recovered_at DATETIME NULL,
+  recovery_notes TEXT NULL,
+  INDEX idx_loss_reports_asset_status (asset_id, status),
+  INDEX idx_loss_reports_status_date (status, requested_at),
+  INDEX idx_loss_reports_district_date (district_snapshot, requested_at),
+  CONSTRAINT fk_loss_reports_asset
+    FOREIGN KEY (asset_id) REFERENCES health_assets(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_loss_reports_requester
+    FOREIGN KEY (requested_by) REFERENCES app_users(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_loss_reports_reviewer
+    FOREIGN KEY (reviewed_by) REFERENCES app_users(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_loss_reports_recoverer
+    FOREIGN KEY (recovered_by) REFERENCES app_users(id) ON DELETE RESTRICT
+);

@@ -1,0 +1,31 @@
+CREATE TABLE IF NOT EXISTS health_assets (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  asset_tag VARCHAR(191) NOT NULL UNIQUE,
+  asset_name VARCHAR(255) NOT NULL,
+  facility_name VARCHAR(255) NOT NULL,
+  location VARCHAR(255) NOT NULL,
+  room_number VARCHAR(100) NULL,
+  custodian_name VARCHAR(255) NULL,
+  persal_number VARCHAR(8) NULL,
+  serial_imei_number VARCHAR(191) NULL,
+  district VARCHAR(100) NOT NULL,
+  sub_district VARCHAR(255) NULL,
+  category VARCHAR(100) NULL,
+  status VARCHAR(50) NOT NULL DEFAULT 'Active',
+  `condition` VARCHAR(50) NOT NULL DEFAULT 'Good',
+  acquisition_date DATE NULL,
+  value DECIMAL(12, 2) NULL,
+  notes TEXT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_health_assets_facility_name (facility_name),
+  INDEX idx_health_assets_district (district),
+  INDEX idx_health_assets_sub_district (sub_district),
+  INDEX idx_health_assets_custodian_name (custodian_name),
+  INDEX idx_health_assets_serial_imei_number (serial_imei_number),
+  INDEX idx_health_assets_persal_number (persal_number),
+  FULLTEXT INDEX ft_health_assets_search (
+    asset_tag, asset_name, facility_name, location, room_number,
+    custodian_name, persal_number, serial_imei_number, district, sub_district
+  )
+);
