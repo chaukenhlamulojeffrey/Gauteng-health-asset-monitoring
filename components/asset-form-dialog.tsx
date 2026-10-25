@@ -20,7 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FileText, Loader2 } from 'lucide-react';
+import { Camera, FileText, Loader2 } from 'lucide-react';
+import { AssetTagCameraScanner } from '@/components/asset-tag-camera-scanner';
 import {
   GAUTENG_DISTRICTS,
   GAUTENG_SUB_DISTRICTS,
@@ -78,6 +79,8 @@ export function AssetFormDialog({
   const [error, setError] = useState<string | null>(null);
   const [facilityOther, setFacilityOther] = useState(false);
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
+  const [scanningAssetTag, setScanningAssetTag] = useState(false);
+  const [assetTagScanNotice, setAssetTagScanNotice] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -93,6 +96,8 @@ export function AssetFormDialog({
     setError(null);
     setFacilityOther(false);
     setEvidenceFile(null);
+    setScanningAssetTag(false);
+    setAssetTagScanNotice(null);
   }, [open, editingAsset, assignedDistrict]);
 
   const availableSubDistricts = form.district
@@ -239,18 +244,57 @@ export function AssetFormDialog({
               <Label htmlFor="asset_tag">
                 Asset Tag <span className="text-destructive">*</span>
               </Label>
-              <Input
-                id="asset_tag"
-                placeholder="Type or scan asset tag, e.g. TDHS-00000"
-                value={form.asset_tag}
-                onChange={(e) => update('asset_tag', e.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') event.preventDefault();
+              <div className="flex gap-2">
+                <Input
+                  id="asset_tag"
+                  className="min-w-0"
+                  placeholder="Type or scan asset tag, e.g. TDHS-00000"
+                  value={form.asset_tag}
+                  onChange={(e) => {
+                    update('asset_tag', e.target.value);
+                    setAssetTagScanNotice(null);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') event.preventDefault();
+                  }}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0"
+                  aria-label="Scan asset tag with camera"
+                  onClick={() => {
+                    setAssetTagScanNotice(null);
+                    setScanningAssetTag(true);
+                  }}
+                >
+                  <Camera className="mr-2 h-4 w-4" />
+                  Scan
+                </Button>
+              </div>
+              <AssetTagCameraScanner
+                active={scanningAssetTag}
+                onDetected={(value) => {
+                  const assetTag = value.trim();
+                  if (!assetTag) {
+                    setAssetTagScanNotice('The code was empty. Try scanning it again.');
+                    setScanningAssetTag(false);
+                    return;
+                  }
+                  update('asset_tag', assetTag);
+                  setAssetTagScanNotice('Code scanned. Verify the asset tag before saving.');
+                  setScanningAssetTag(false);
                 }}
-                required
+                onClose={() => setScanningAssetTag(false)}
               />
+              {assetTagScanNotice && (
+                <p className="text-sm text-muted-foreground" role="status">
+                  {assetTagScanNotice}
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
-                No scanner required: type the asset tag with your keyboard or scan it using a keyboard-mode scanner.
+                Type the tag, use a keyboard-mode scanner, or scan its barcode/QR code with your device camera. Check the value before saving.
               </p>
             </div>
             <div className="space-y-2">
