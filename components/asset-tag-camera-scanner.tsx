@@ -43,6 +43,8 @@ export function AssetTagCameraScanner({
 
     let disposed = false;
     let controls: IScannerControls | undefined;
+    setCameraError(null);
+    setCameraReady(false);
 
     const startScanner = async () => {
       if (!navigator.mediaDevices?.getUserMedia) {

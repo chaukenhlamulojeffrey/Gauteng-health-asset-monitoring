@@ -15,6 +15,7 @@ import { MaintenanceRecordPanel } from '@/components/maintenance-record-panel';
 import { LostAssetPanel } from '@/components/lost-asset-panel';
 import { DisposalPanel } from '@/components/disposal-panel';
 import { AssetOperationDialog } from '@/components/asset-operation-dialog';
+import { AssetTagCameraScanner } from '@/components/asset-tag-camera-scanner';
 import { AssetOperationsPanel } from '@/components/asset-operations-panel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Search, Loader2, X, Download, ShieldCheck, ScanSearch } from 'lucide-react';
+import { Camera, Plus, Search, Loader2, X, Download, ShieldCheck, ScanSearch } from 'lucide-react';
 import { fetchAssets, createAsset, updateAsset, deleteAsset } from '@/lib/assets';
 import { fetchFacilities } from '@/lib/facilities';
 import { createDisposalRequest } from '@/lib/disposals';
@@ -67,6 +68,7 @@ export default function Home() {
 
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [searchCameraOpen, setSearchCameraOpen] = useState(false);
   const [filterDistrict, setFilterDistrict] = useState('all');
   const [filterSubDistrict, setFilterSubDistrict] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -510,7 +512,7 @@ export default function Home() {
         {/* Filters */}
         <Card className="p-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <div className="relative flex-1">
+            <div className="relative flex-1 space-y-2">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Type or scan asset tag, serial number, or IMEI..."
@@ -526,7 +528,30 @@ export default function Home() {
                     setPageOffset(0);
                   }
                 }}
-                className="pl-10"
+                className="pl-10 pr-24"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="absolute right-1.5 top-1.5"
+                aria-label="Scan asset tag to search"
+                onClick={() => setSearchCameraOpen(true)}
+              >
+                <Camera className="mr-2 h-4 w-4" />
+                Scan
+              </Button>
+              <AssetTagCameraScanner
+                active={searchCameraOpen}
+                onDetected={(value) => {
+                  const assetTag = value.trim();
+                  if (!assetTag) return;
+                  setSearch(assetTag);
+                  setDebouncedSearch(assetTag);
+                  setPageOffset(0);
+                  setSearchCameraOpen(false);
+                }}
+                onClose={() => setSearchCameraOpen(false)}
               />
             </div>
             <div className="flex flex-wrap gap-3">

@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { EvidencePdfField } from '@/components/evidence-pdf-field';
+import { AssetTagCameraScanner } from '@/components/asset-tag-camera-scanner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -39,6 +41,11 @@ export function AssetOperationDialog({
   const [evidence, setEvidence] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [verificationScannerOpen, setVerificationScannerOpen] = useState(false);
+  const [verificationTagMessage, setVerificationTagMessage] = useState<{
+    matches: boolean;
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!open || !type) return;
@@ -51,6 +58,8 @@ export function AssetOperationDialog({
     setExtensionUnit('years');
     setEvidence(null);
     setError(null);
+    setVerificationScannerOpen(false);
+    setVerificationTagMessage(null);
   }, [open, type, asset]);
 
   const setValue = (key: string, value: string | number | boolean) =>
@@ -127,6 +136,51 @@ export function AssetOperationDialog({
 
           {type === 'verification' && (
             <>
+              <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-medium">Confirm asset tag</p>
+                    <p className="text-xs text-muted-foreground">
+                      Expected tag: {asset?.asset_tag}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setVerificationTagMessage(null);
+                      setVerificationScannerOpen(true);
+                    }}
+                  >
+                    <Camera className="mr-2 h-4 w-4" />
+                    Scan tag
+                  </Button>
+                </div>
+                <AssetTagCameraScanner
+                  active={verificationScannerOpen}
+                  onDetected={(value) => {
+                    const scannedTag = value.trim();
+                    const matches = scannedTag.toLocaleUpperCase() ===
+                      asset?.asset_tag.trim().toLocaleUpperCase();
+                    setVerificationTagMessage({
+                      matches,
+                      text: matches
+                        ? `Asset tag ${scannedTag} confirmed.`
+                        : `Scanned ${scannedTag}, which does not match ${asset?.asset_tag}. Check the asset and scan again.`,
+                    });
+                    setVerificationScannerOpen(false);
+                  }}
+                  onClose={() => setVerificationScannerOpen(false)}
+                />
+                {verificationTagMessage && (
+                  <p
+                    className={`text-sm ${verificationTagMessage.matches ? 'text-green-700 dark:text-green-400' : 'text-destructive'}`}
+                    role={verificationTagMessage.matches ? 'status' : 'alert'}
+                  >
+                    {verificationTagMessage.text}
+                  </p>
+                )}
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Asset found at verification? *</Label>
